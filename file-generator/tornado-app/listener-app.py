@@ -5,6 +5,7 @@ from firebase_admin import credentials
 from firebase_admin import db
 from firebase_admin import storage
 import json
+from localdbutils import *
 
 referenceId = 'asdkfjhasdlfaxdoifasfjndls'
 
@@ -37,21 +38,38 @@ def ignore_first_call(fn):
 
 @ignore_first_call
 def listener(event):
-    print(event.event_type)  # can be 'put' or 'patch'
-    print(event.path)  # relative to the reference, it seems
-    print(event.data)  # new data at /reference/event.path. None if deleted
-    print(bucket.list_blobs())
+    #print(event.event_type)  # can be 'put' or 'patch'
+    #print(event.path)  # relative to the reference, it seems
+    #print(event.data)  # new data at /reference/event.path. None if deleted
+    #print(bucket.list_blobs())
 
+    dataChanged = False
 
     if event.event_type == 'put':
-        if event.data != None:
-            print(event)
+        parsedPath = parsePath(event.path)
+        localData = loadLocalDb()
 
-    node = str(event.path).split('/')[-2] #you can slice the path according to your requirement
-    property = str(event.path).split('/')[-1] 
-    value = event.data
+    if parsedPath.dataType == 'MEAL':
+        isExistingUser = isUserInLocalDb(parsedPath.userId,localData)
 
+        if isExistingUser != True:
+            localData[parsedPath.userId] = []
+        
+        localData[parsedPath.userId].append(parsedPath.dishId) 
+        dataChanged = True
+    
+    if parsedPath.dataType == None:
+        try:
+            localData[parsedPath.userId].remove(parsedPath.dishId) 
+            dataChanged = True 
+        except:
+            print("DELETION FAILED") 
+            dataChanged = False
 
+    if dataChanged:
+        saveDbToLocal(localData)
+        print("local data being saved")
+        print(localData)
 
 
 class MainHandler(tornado.web.RequestHandler):
