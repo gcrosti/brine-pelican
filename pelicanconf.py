@@ -35,3 +35,6 @@ THEME = '/Users/giuseppecrosti/virtualenvs/pelican/theme/simple'
 
 # Uncomment following line if you want document-relative URLs when developing
 #RELATIVE_URLS = True
+
+# Disable autocategorization by folder name
+USE_FOLDER_AS_CATEGORY = False

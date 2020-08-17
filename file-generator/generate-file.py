@@ -1,15 +1,23 @@
-
 #%%
 from yattag import Doc
 from yattag import indent
 import json
 firebaseKey = 'asdkfjhasdlfaxdoifasfjndls'
 from datetime import date
+import html
 
 #%% LOAD DATA
 with open("/Users/giuseppecrosti/virtualenvs/pelican/file-generator/brine-599f1-export-sample.json",'r') as f:
     testData = json.loads(f.read())
 
+#%%
+doc, tag, text = Doc().tagtext()
+doc.asis(page)
+with tag('head'):
+        with tag('title'):
+            text("this is a new title")
+
+print(doc.getvalue())
 #%% RETRIEVE INSTANCE IDs
 instanceIds = []
 

@@ -48,6 +48,7 @@ def listener(event):
     if event.event_type == 'put':
         parsedPath = parsePath(event.path)
         localData = loadLocalDb()
+        print(parsedPath)
 
     if parsedPath.dataType == 'MEAL':
         isExistingUser = isUserInLocalDb(parsedPath.userId,localData)
@@ -57,6 +58,9 @@ def listener(event):
         
         localData[parsedPath.userId].append(parsedPath.dishId) 
         dataChanged = True
+    
+    if parsedPath.dataType == 'FUNCTIONS':
+        print(parseFunctions(event.data))
     
     if parsedPath.dataType == None:
         try:

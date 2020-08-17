@@ -36,9 +36,47 @@ def parsePath(path:str):
     return ParsedPath(userId,dishId,dataType)
 
 
+def parseFunctions(functions:dict):
+    out = ""
+    ingredientEmoji = "🌶️"
+    beverageEmoji = "🍹"
+    dessertEmoji = "🍩"
+    proteinEmoji = "🍖"
+    starchEmoji = "🥖"
+    vegetableEmoji = "🥦"
+    dipEmoji = "🥣"
+    dressingEmoji = "🥗"
+    commaSpace = ", "
+
+    if functions["beverage"]:
+        out += (beverageEmoji + " Beverage")
+    if functions["dessert"]:
+        out += (commaSpace + dessertEmoji + " Dessert")
+    if functions["dip"]:
+        out += (commaSpace + dipEmoji + " Dip")
+    if functions["dressing"]:
+        out += (commaSpace + dressingEmoji + " Dressing")
+    if functions["ingredient"]:
+        out += (commaSpace + ingredientEmoji + " Ingredient")
+    if functions["protein"]:
+        out += (commaSpace + proteinEmoji + " Protein")
+    if functions["starch"]:
+        out += (commaSpace + starchEmoji + " Starch")
+    if functions["veg"]:
+        out += (commaSpace + vegetableEmoji + " Vegetable")
+    
+    return out
+
 class ParsedPath:
     def __init__(self, userId: str, dishId: int, dataType: str):
         self.userId = userId
         self.dishId = dishId
         self.dataType = dataType
         
+class ParsedDishData:
+    def __init__(self, userId: str, title: str, description = "", images = [], content = ""):
+        self.userId = userId
+        self.title = title
+        self.description = description
+        self.images = images
+        self.content = content
