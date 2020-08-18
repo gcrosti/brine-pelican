@@ -47,7 +47,7 @@ def listener(event):
 
     if event.event_type == 'put':
         parsedPath = parsePath(event.path)
-        localData = loadLocalDb()
+        localData = loadUsersDishesFromS3()
         print(parsedPath)
 
     if parsedPath.dataType == 'MEAL':

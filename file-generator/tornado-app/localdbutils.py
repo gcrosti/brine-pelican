@@ -2,14 +2,14 @@ import json
 
 
 
-def loadLocalDb(): 
+def loadUsersDishesFromS3(): 
     with open("/Users/giuseppecrosti/virtualenvs/pelican/file-generator/local-db/local-db.json","r") as d:
         data = json.loads(d.read())
     
     return data
 
 
-def saveDbToLocal(data: dict):
+def saveUsersDishesToS3(data: dict):
     with open("/Users/giuseppecrosti/virtualenvs/pelican/file-generator/local-db/local-db.json","w") as d:
         d.write(json.dumps(data))
 
