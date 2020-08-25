@@ -43,37 +43,30 @@ def listener(event):
     #print(event.data)  # new data at /reference/event.path. None if deleted
     #print(bucket.list_blobs())
 
-    dataChanged = False
+    s3DAO = S3DAO()
 
     if event.event_type == 'put':
         parsedPath = parsePath(event.path)
-        localData = loadUsersDishesFromS3()
-        print(parsedPath)
+        userDishes = list(s3DAO.getDishesFromS3(parsedPath.userId))
+        print(event.data)
+        
 
     if parsedPath.dataType == 'MEAL':
-        isExistingUser = isUserInLocalDb(parsedPath.userId,localData)
-
-        if isExistingUser != True:
-            localData[parsedPath.userId] = []
+        userDishes.append(parsedPath.dishId) 
         
-        localData[parsedPath.userId].append(parsedPath.dishId) 
-        dataChanged = True
     
     if parsedPath.dataType == 'FUNCTIONS':
         print(parseFunctions(event.data))
     
     if parsedPath.dataType == None:
         try:
-            localData[parsedPath.userId].remove(parsedPath.dishId) 
-            dataChanged = True 
+            userDishes.remove(parsedPath.dishId) 
+        
         except:
             print("DELETION FAILED") 
-            dataChanged = False
-
-    if dataChanged:
-        saveDbToLocal(localData)
-        print("local data being saved")
-        print(localData)
+            
+    
+    s3DAO.saveDishesToS3(parsedPath.userId,userDishes)
 
 
 class MainHandler(tornado.web.RequestHandler):

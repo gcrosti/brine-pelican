@@ -15,7 +15,7 @@
       },
       "MEAL" : {
         "mealId" : 1,
-        "name" : "meatballs",
+        "name" : "meatballs test",
         "notes" : "hello"
       }
     }, {
