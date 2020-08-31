@@ -42,31 +42,37 @@ def listener(event):
     #print(event.path)  # relative to the reference, it seems
     #print(event.data)  # new data at /reference/event.path. None if deleted
     #print(bucket.list_blobs())
+    print()
 
     s3DAO = S3DAO()
 
+    is_dish_new = False
+    is_dish_deleted = False
+
     if event.event_type == 'put':
         parsedPath = parsePath(event.path)
-        userDishes = list(s3DAO.getDishesFromS3(parsedPath.userId))
-        print(event.data)
-        
+        is_dish_new = s3DAO.isDishNew(parsedPath.userId,parsedPath.dishId)
 
     if parsedPath.dataType == 'MEAL':
-        userDishes.append(parsedPath.dishId) 
+        if is_dish_new:
+            s3DAO.addDishToUsersDishes(parsedPath.userId,parsedPath.dishId)
+            s3DAO.addDishToPagesContent(parsedPath.userId,parsedPath.dishId)
         
+    if parsedPath.dataType == 'IMAGES':
+        print(event.data)
     
     if parsedPath.dataType == 'FUNCTIONS':
         print(parseFunctions(event.data))
     
     if parsedPath.dataType == None:
         try:
-            userDishes.remove(parsedPath.dishId) 
-        
+            s3DAO.deleteDishFromUsersDishes(parsedPath.userId,parsedPath.dishId)
+            is_dish_deleted = True
         except:
             print("DELETION FAILED") 
             
-    
-    s3DAO.saveDishesToS3(parsedPath.userId,userDishes)
+    if is_dish_deleted or is_dish_new:
+        s3DAO.saveUsersDishesToS3(parsedPath.userId)
 
 
 class MainHandler(tornado.web.RequestHandler):

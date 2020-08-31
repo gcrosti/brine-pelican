@@ -13,6 +13,7 @@ class S3DAO:
         self.users_dishes_last_modified = None
         self.page_content_last_modified = None
         self.users_dishes = None
+        self.pages_content = None
 
     def __getS3Client(self):
         if self.s3_client is None:
@@ -51,8 +52,9 @@ class S3DAO:
 
         return timeAsDt
 
-    def __isUserInDb(self,userId:str, data:dict):
-        for id in data:
+    def __isUserInDb(self,userId:str):
+        usersDishes = self.__getUsersDishesFromS3()
+        for id in usersDishes:
             if id == userId:
                 return True
         return False
@@ -60,26 +62,40 @@ class S3DAO:
     def __createNewUserInUsersDishes(self,userId:str):
         self.users_dishes[userId] = []
 
-    def getDishesFromS3(self,userId:str):
+    def addDishToUsersDishes(self,userId: str, dishId:str):
         usersDishes = self.__getUsersDishesFromS3()
-        isUserInDB = self.__isUserInDb(userId,usersDishes)
+        isUserInDB = self.__isUserInDb(userId)
         if not isUserInDB:
             self.__createNewUserInUsersDishes(userId)
-        return usersDishes[userId]
+        usersDishes[userId].append(dishId)
     
-    def saveDishesToS3(self,userId: str, dishes: list):
-    
-        if dishes == self.users_dishes[userId]:
+    def deleteDishFromUsersDishes(self,userId: str, dishId: str):
+        isDishNew = self.isDishNew(userId,dishId)
+        if isDishNew:
             return
-        
+        self.users_dishes[userId].remove(dishId)
+
+    def isDishNew(self,userId: str, dishId: str):
+        userDishes = self.__getUsersDishesFromS3()[userId]
+        if dishId in userDishes:
+            return False
+        return True
+    
+    def saveUsersDishesToS3(self, userId:str):
         latest_update_timestamp = self.__getTimeStampOfLastUpdateFromS3(self.USERS_DISHES_S3_KEY)
         usersDishesToSave = dict(self.users_dishes)
         if latest_update_timestamp < self.users_dishes_last_modified:
             usersDishesToSave = self.__getUsersDishesFromS3()
-        usersDishesToSave[userId] = dishes
+            usersDishesToSave[userId] = self.users_dishes[userId]
+        print('users dishes to save')
+        print(usersDishesToSave)
         self.__saveUsersDishesToS3(usersDishesToSave)  
 
-    
+    # GETTERS AND SETTERS FOR PAGE CONTENT
+
+    def getPageContentFromS3(self):
+
+        return
 
 def parsePath(path:str):
         firstSlash = path.find("/",1)
@@ -106,23 +122,23 @@ def parseFunctions(functions:dict):
         commaSpace = ", "
 
         if functions["beverage"]:
-            out += (beverageEmoji + " Beverage")
+            out += (beverageEmoji + " Beverage" + commaSpace)
         if functions["dessert"]:
-            out += (commaSpace + dessertEmoji + " Dessert")
+            out += (dessertEmoji + " Dessert" + commaSpace)
         if functions["dip"]:
-            out += (commaSpace + dipEmoji + " Dip")
+            out += (dipEmoji + " Dip" + commaSpace)
         if functions["dressing"]:
-            out += (commaSpace + dressingEmoji + " Dressing")
+            out += (dressingEmoji + " Dressing" + commaSpace)
         if functions["ingredient"]:
-            out += (commaSpace + ingredientEmoji + " Ingredient")
+            out += (ingredientEmoji + " Ingredient" + commaSpace)
         if functions["protein"]:
-            out += (commaSpace + proteinEmoji + " Protein")
+            out += (proteinEmoji + " Protein" + commaSpace)
         if functions["starch"]:
-            out += (commaSpace + starchEmoji + " Starch")
+            out += (starchEmoji + " Starch" + commaSpace)
         if functions["veg"]:
-            out += (commaSpace + vegetableEmoji + " Vegetable")
+            out += (vegetableEmoji + " Vegetable" + commaSpace)
         
-        return out
+        return out[:-2]
 
 class ParsedPath:
     def __init__(self, userId: str, dishId: int, dataType: str):
@@ -130,9 +146,10 @@ class ParsedPath:
         self.dishId = dishId
         self.dataType = dataType
         
-class ParsedDishData:
-    def __init__(self, userId: str, title: str, description = "", images = [], content = ""):
+class PageContent:
+    def __init__(self, userId: str, dishId: str, title: str, description = "", images = [], content = ""):
         self.userId = userId
+        self.dishId = dishId
         self.title = title
         self.description = description
         self.images = images
